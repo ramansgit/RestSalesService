@@ -1,6 +1,7 @@
 package com.sales.service.util;
 
 import java.io.FileWriter;
+import java.io.IOException;
 import java.io.InputStream;
 import java.text.DecimalFormat;
 import java.util.concurrent.Callable;
@@ -21,13 +22,18 @@ public class ExcelToCsvConvertor implements Callable<String> {
 
 	private InputStream inputStream;
 	private String contentType;
+	private String sessionId;
 
-	public ExcelToCsvConvertor(InputStream inputStream, String contentType) {
+	public ExcelToCsvConvertor(InputStream inputStream, String contentType, String sessionId) {
 		this.inputStream = inputStream;
 		this.contentType = contentType;
+		this.sessionId = sessionId;
 	}
 
-	public static String readExcelDataAndConvertToCsv(InputStream inputStream, String contentType) {
+	public static String readExcelDataAndConvertToCsv(InputStream inputStream, String contentType, String sessionId) {
+
+		CSVWriter my_csv_output = null;
+		Workbook workbook = null;
 
 		try {
 			// Create the input stream from the xlsx/xls file
@@ -40,7 +46,7 @@ public class ExcelToCsvConvertor implements Callable<String> {
 			}
 
 			// Create Workbook instance for xlsx/xls file input stream
-			Workbook workbook = null;
+
 			if (contentType != null && contentType.toLowerCase()
 					.endsWith("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")) {
 				workbook = new XSSFWorkbook(inputStream);
@@ -49,7 +55,7 @@ public class ExcelToCsvConvertor implements Callable<String> {
 				workbook = new HSSFWorkbook(inputStream);
 			}
 
-			CSVWriter my_csv_output = new CSVWriter(new FileWriter("sales.csv", false), ',', '\0');
+			my_csv_output = new CSVWriter(new FileWriter("sales.csv", false), ',', '\0');
 
 			// Get the nth sheet from the workbook
 			Sheet sheet = workbook.getSheetAt(1);
@@ -100,12 +106,20 @@ public class ExcelToCsvConvertor implements Callable<String> {
 
 			System.out.println("input xslx file converted succeffully to csv");
 
-			my_csv_output.close();
-
 		} catch (Exception e) {
 			System.out.println("xlsx to csv conversion failed" + e.getMessage());
 			e.printStackTrace();
 			return "error";
+		} finally {
+			try {
+				inputStream.close();
+				my_csv_output.close();
+
+				workbook.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
 		return "success";
 
@@ -114,16 +128,36 @@ public class ExcelToCsvConvertor implements Callable<String> {
 	/**
 	 * performing conversion in seperate thread
 	 */
-	public String call() throws Exception {
+	public String call() {
+		String status = "";
+		try {
+			//status = //readExcelDataAndConvertToCsv(inputStream, contentType, sessionId);
+					status = "success";
+			System.out.println(status);
+			if (status == null || status.equalsIgnoreCase("error")) {
+				// post error msg saying file conversion failed msg on socket
+				System.out.println("error while converting");
 
-		String status = readExcelDataAndConvertToCsv(inputStream, contentType);
-		if (status == null || status.equalsIgnoreCase("error")) {
-			// post error msg saying file conversion failed msg on socket
-		} else {
-
-			// post success msg saying file conversion done on socket
+			} else {
+//				if (BroadcastSocket.getSession(sessionId) != null) {
+//					BroadcastSocket.broadcast(BroadcastSocket.getSession(sessionId),
+//							"CSV_FILE_STATUS=DONE" + "," + "CLIENT_ID=" + sessionId);
+//				}
+				// post success msg saying file conversion done on socket
+			}
+			// update status via websocket connection
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
-		// update status via websocket connection
+		finally {
+			try {
+				inputStream.close();
+				
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
 		return status;
 	}
 

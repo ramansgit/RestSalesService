@@ -11,10 +11,14 @@ import com.sales.service.model.WeeklySale;
 
 public class CSVToSalesMapper {
 
-	public static List<Sales> convertCsvToSales() {
+	public static synchronized List<Sales> convertCsvToSales() {
 		List<Sales> sales = new ArrayList<Sales>();
+		FileReader fileReader = null;
+		CSVReader reader = null;
+
 		try {
-			CSVReader reader = new CSVReader(new FileReader("sales.csv"), ',');
+			fileReader = new FileReader("sales.csv");
+			reader = new CSVReader(fileReader, ',');
 			reader.readNext(); // skipping as header
 			reader.readNext();// skipping as header
 
@@ -54,17 +58,22 @@ public class CSVToSalesMapper {
 
 				sales.add(sale);
 			}
-			reader.close();
+
 			System.out.println(sales);
 
 		} catch (Exception e) {
 			e.printStackTrace();
+		} finally {
+			try {
+				fileReader.close();
+				reader.close();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 		}
-
 		return sales;
-	}
-
-	public static void main(String[] args) throws IOException {
 
 	}
+
 }
