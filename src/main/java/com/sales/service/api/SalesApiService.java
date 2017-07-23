@@ -8,13 +8,13 @@ public abstract class SalesApiService {
 	/**
 	 * allows client to upload excel file
 	 */
-	public abstract Response uploadExcelFile(String sessionId,HttpServletRequest request);
+	public abstract Response uploadExcelFile(String clientId,HttpServletRequest request);
 
 	/**
 	 * allows client to get the sales record
 	 * 
 	 */
-	public abstract Response getSalesRecord(String sessionId);
+	public abstract Response getSalesRecord(String clientId);
 	
 
 }

@@ -6,6 +6,9 @@ import java.io.InputStream;
 import java.text.DecimalFormat;
 import java.util.concurrent.Callable;
 
+import javax.websocket.EncodeException;
+import javax.websocket.Session;
+
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellType;
@@ -17,20 +20,22 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import com.opencsv.CSVWriter;
+import com.sales.service.model.Message;
+import com.sales.websocket.service.BroadcastServerEndpoint;
 
 public class ExcelToCsvConvertor implements Callable<String> {
 
 	private InputStream inputStream;
 	private String contentType;
-	private String sessionId;
+	private String clientId;
 
-	public ExcelToCsvConvertor(InputStream inputStream, String contentType, String sessionId) {
+	public ExcelToCsvConvertor(InputStream inputStream, String contentType, String clientId) {
 		this.inputStream = inputStream;
 		this.contentType = contentType;
-		this.sessionId = sessionId;
+		this.clientId = clientId;
 	}
 
-	public static String readExcelDataAndConvertToCsv(InputStream inputStream, String contentType, String sessionId) {
+	public static String readExcelDataAndConvertToCsv(InputStream inputStream, String contentType, String clientId) {
 
 		CSVWriter my_csv_output = null;
 		Workbook workbook = null;
@@ -112,10 +117,16 @@ public class ExcelToCsvConvertor implements Callable<String> {
 			return "error";
 		} finally {
 			try {
-				inputStream.close();
-				my_csv_output.close();
+				if (inputStream != null) {
+					inputStream.close();
+				}
+				if (my_csv_output != null) {
+					my_csv_output.close();
+				}
+				if (workbook != null) {
+					workbook.close();
+				}
 
-				workbook.close();
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -131,28 +142,34 @@ public class ExcelToCsvConvertor implements Callable<String> {
 	public String call() {
 		String status = "";
 		try {
-			//status = //readExcelDataAndConvertToCsv(inputStream, contentType, sessionId);
-					status = "success";
+			status = readExcelDataAndConvertToCsv(inputStream, contentType, clientId);
 			System.out.println(status);
 			if (status == null || status.equalsIgnoreCase("error")) {
 				// post error msg saying file conversion failed msg on socket
 				System.out.println("error while converting");
 
 			} else {
-//				if (BroadcastSocket.getSession(sessionId) != null) {
-//					BroadcastSocket.broadcast(BroadcastSocket.getSession(sessionId),
-//							"CSV_FILE_STATUS=DONE" + "," + "CLIENT_ID=" + sessionId);
-//				}
+				Session session = BroadcastServerEndpoint.getSession(clientId);
+				if (session != null) {
+					try {
+						session.getBasicRemote().sendObject(new Message(session.getId(), "CSV_READY"));
+					} catch (IOException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					} catch (EncodeException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
 				// post success msg saying file conversion done on socket
 			}
 			// update status via websocket connection
 		} catch (Exception e) {
 			e.printStackTrace();
-		}
-		finally {
+		} finally {
 			try {
 				inputStream.close();
-				
+
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

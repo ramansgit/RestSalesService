@@ -14,13 +14,15 @@ import javax.ws.rs.core.Response.Status;
 
 import com.sales.service.constants.SalesConstants;
 import com.sales.service.model.Sales;
+import com.sales.service.util.CSVToSalesMapper;
 import com.sales.service.util.ExcelToCsvConvertor;
 import com.sales.service.util.ResponseUtil;
+import com.sales.websocket.service.BroadcastServerEndpoint;
 
 public class SalesApiServiceImpl extends SalesApiService {
 
 	@Override
-	public Response uploadExcelFile(String sessionId, HttpServletRequest request) {
+	public Response uploadExcelFile(String clientId, HttpServletRequest request) {
 		InputStream in = null;
 		try {
 			MultipartConfigElement multipartConfigElement = new MultipartConfigElement("data/tmp");
@@ -28,11 +30,11 @@ public class SalesApiServiceImpl extends SalesApiService {
 			// String fName = request.getParameter("name");
 
 			Part file = request.getPart("upload");
-			
+
 			String contentType = "";
 
-//			if (sessionId == null || !BroadcastSocket.isTrustedClient(sessionId)) {
-//				System.out.println("no client connected with session id"+sessionId);
+//			if (clientId == null || !BroadcastServerEndpoint.isClientFound(clientId)) {
+//				System.out.println("no client connected with session id" + clientId);
 //				return ResponseUtil.handleFailureResp(Status.BAD_REQUEST, SalesConstants.INVALID_SOCKET_ID_CLIENT,
 //						SalesConstants.INVALID_SOCKET_ID_CLIENT_MSG);
 //			}
@@ -59,7 +61,7 @@ public class SalesApiServiceImpl extends SalesApiService {
 			}
 
 			System.out.println("sending file for conversion");
-			Executors.newCachedThreadPool().submit(new ExcelToCsvConvertor(in, contentType, sessionId));
+			Executors.newCachedThreadPool().submit(new ExcelToCsvConvertor(in, contentType, clientId));
 
 			return ResponseUtil.handleSuccessResp(SalesConstants.FILE_RECEIVED_MSG);
 
@@ -69,41 +71,34 @@ public class SalesApiServiceImpl extends SalesApiService {
 
 			return ResponseUtil.handleFailureResp(Status.INTERNAL_SERVER_ERROR, SalesConstants.FILE_UPLOAD_FAILED,
 					SalesConstants.FILE_UPLOAD_FAILED_MSG);
-		}
-		finally {
-			try {
-				in.close();
-				
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+		} finally {
+		
 		}
 	}
 
 	@Override
-	public Response getSalesRecord(String sessionId) {
+	public Response getSalesRecord(String clientId) {
 
-//		if (sessionId == null || !BroadcastSocket.isTrustedClient(sessionId)) {
-//			System.out.println("no client connected with session id"+sessionId);
-//			return ResponseUtil.handleFailureResp(Status.BAD_REQUEST, SalesConstants.INVALID_SOCKET_ID_CLIENT,
-//					SalesConstants.INVALID_SOCKET_ID_CLIENT_MSG);
-//		}
+		if (clientId == null )//|| !BroadcastServerEndpoint.isClientFound(clientId)) {
+		{
+			System.out.println("no client connected with session id" + clientId);
+			return ResponseUtil.handleFailureResp(Status.BAD_REQUEST, SalesConstants.INVALID_SOCKET_ID_CLIENT,
+					SalesConstants.INVALID_SOCKET_ID_CLIENT_MSG);
+		}
+
 		List<Sales> sales = new ArrayList<Sales>();
 		sales.add(new Sales());
-//		try {
-//			
-//			sales = CSVToSalesMapper.convertCsvToSales();
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//
-//			return ResponseUtil.handleFailureResp(Status.NOT_FOUND, SalesConstants.FILE_NOT_FOUND,
-//					SalesConstants.FILE_NOT_FOUND_MSG);
-//		}
+		try {
+
+			sales = CSVToSalesMapper.convertCsvToSales();
+		} catch (Exception e) {
+			e.printStackTrace();
+
+			return ResponseUtil.handleFailureResp(Status.NOT_FOUND, SalesConstants.FILE_NOT_FOUND,
+					SalesConstants.FILE_NOT_FOUND_MSG);
+		}
 
 		return ResponseUtil.handleSuccessResp(sales);
 	}
-
-
 
 }

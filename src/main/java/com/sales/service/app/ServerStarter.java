@@ -5,6 +5,7 @@ import org.eclipse.jetty.servlet.DefaultServlet;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import org.eclipse.jetty.websocket.jsr356.server.deploy.WebSocketServerContainerInitializer;
+import org.glassfish.jersey.media.multipart.MultiPartFeature;
 import org.glassfish.jersey.server.ResourceConfig;
 import org.glassfish.jersey.servlet.ServletContainer;
 import org.springframework.web.context.ContextLoaderListener;
@@ -16,6 +17,7 @@ public class ServerStarter  {
         
     	ResourceConfig config = new ResourceConfig();
 		config.packages("com.sales.service.resource");
+		config.register(MultiPartFeature.class);
 		ServletHolder servlet = new ServletHolder(new ServletContainer(config));
 
         
