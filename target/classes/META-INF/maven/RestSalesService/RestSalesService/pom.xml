@@ -194,18 +194,6 @@
 				</executions>
 			</plugin>
 
-			<!-- <plugin> <groupId>org.apache.maven.plugins</groupId> <artifactId>maven-compiler-plugin</artifactId> 
-				<version>3.0</version> <configuration> <source>1.7</source> <target>1.7</target> 
-				</configuration> </plugin> <plugin> <groupId>org.apache.maven.plugins</groupId> 
-				<artifactId>maven-shade-plugin</artifactId> <version>1.6</version> <configuration> 
-				<filters> <filter> <artifact>*:*</artifact> <excludes> <exclude>META-INF/*.SF</exclude> 
-				<exclude>META-INF/*.DSA</exclude> <exclude>META-INF/*.RSA</exclude> </excludes> 
-				</filter> </filters> </configuration> <executions> <execution> <id>shade-server</id> 
-				<phase>package</phase> <goals> <goal>shade</goal> </goals> <configuration> 
-				<outputFile>target/${project.artifactId}-${project.version}-server.jar</outputFile> 
-				<transformers> <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer"> 
-				<mainClass>com.sales.service.app.ServerStarter</mainClass> </transformer> 
-				</transformers> </configuration> </execution> </executions> </plugin> -->
 		</plugins>
 	</build>
 
