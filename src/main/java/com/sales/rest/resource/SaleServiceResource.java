@@ -1,4 +1,4 @@
-package com.sales.service.resource;
+package com.sales.rest.resource;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -22,35 +22,21 @@ import javax.ws.rs.core.Response;
 import org.glassfish.jersey.media.multipart.FormDataContentDisposition;
 import org.glassfish.jersey.media.multipart.FormDataParam;
 
-import com.sales.service.api.SalesApiService;
-import com.sales.service.api.SalesApiServiceImpl;
+import com.sales.rest.api.SalesApiService;
+import com.sales.rest.api.SalesApiServiceImpl;
 
 @Path("/api/v1/sales")
 public class SaleServiceResource {
 	private final SalesApiService delegate = new SalesApiServiceImpl();
 
-	@POST
-	@Path("/pdf")
-	@Consumes({ MediaType.MULTIPART_FORM_DATA })
-	public Response uploadPdfFile(@FormDataParam("file") InputStream fileInputStream,
-			@FormDataParam("file") FormDataContentDisposition fileMetaData) throws Exception {
-		String UPLOAD_PATH = "/Users/ramans/git/RestSalesService/target/";
-		try {
-			int read = 0;
-			byte[] bytes = new byte[1024];
-
-			OutputStream out = new FileOutputStream(new File(UPLOAD_PATH + fileMetaData.getFileName()));
-			while ((read = fileInputStream.read(bytes)) != -1) {
-				out.write(bytes, 0, read);
-			}
-			out.flush();
-			out.close();
-		} catch (IOException e) {
-			throw new WebApplicationException("Error while uploading file. Please try again !!");
-		}
-		return Response.ok("Data uploaded successfully !!").build();
-	}
-
+	/**
+	 * allows rest client to upload sales excel file via post endpoint. 
+	 * clientId is mandatory for upload. 
+	 * @param clientId
+	 * @param request
+	 * @param response
+	 * @return
+	 */
 	@POST
 	@Consumes({ MediaType.MULTIPART_FORM_DATA })
 	@Produces({ MediaType.APPLICATION_JSON })
@@ -62,6 +48,14 @@ public class SaleServiceResource {
 
 	}
 
+	/**
+	 * allows rest client to get sales data from this get endpoint. 
+	 * client id is mandatory for retrieval
+	 * @param clientId
+	 * @param request
+	 * @param response
+	 * @return
+	 */
 	@GET
 	@Consumes({ MediaType.APPLICATION_JSON })
 	@Produces({ MediaType.APPLICATION_JSON })

@@ -1,5 +1,10 @@
 package com.sales.service.model;
 
+/**
+ * returns response to the client
+ * @author ramans
+ *
+ */
 @javax.xml.bind.annotation.XmlRootElement
 @javax.annotation.Generated(value = "class io.swagger.codegen.languages.JavaJerseyServerCodegen", date = "2016-03-28T13:06:53.817Z")
 public class ApiResponseMessage {

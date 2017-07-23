@@ -1,5 +1,10 @@
 package com.sales.service.constants;
 
+/**
+ * all constants managed in this class.
+ * @author ramans
+ *
+ */
 public class SalesConstants {
 
 	//code
@@ -33,7 +38,9 @@ public class SalesConstants {
 	
 	public static final String FILE_RECEIVED_MSG="File Received Successfully";
 	
+	public static final String FILE_MEDIA_TYPE_XLSX="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
 	
+	public static final String FILE_MEDIA_TYPE_XLS="application/vnd.ms-excel";
 
 	
 }

@@ -20,9 +20,16 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import com.opencsv.CSVWriter;
+import com.sales.service.constants.SalesConstants;
 import com.sales.service.model.Message;
-import com.sales.websocket.service.BroadcastServerEndpoint;
+import com.sales.websocket.service.SalesWSEndpoint;
 
+/**
+ * uploads excel file to server and converts to csv format
+ * 
+ * @author ramans
+ *
+ */
 public class ExcelToCsvConvertor implements Callable<String> {
 
 	private InputStream inputStream;
@@ -35,6 +42,13 @@ public class ExcelToCsvConvertor implements Callable<String> {
 		this.clientId = clientId;
 	}
 
+	/**
+	 * 
+	 * @param inputStream
+	 * @param contentType
+	 * @param clientId
+	 * @return
+	 */
 	public static String readExcelDataAndConvertToCsv(InputStream inputStream, String contentType, String clientId) {
 
 		CSVWriter my_csv_output = null;
@@ -45,22 +59,23 @@ public class ExcelToCsvConvertor implements Callable<String> {
 			// FileInputStream fis = new FileInputStream(fileName);
 
 			System.out.println("contentType" + contentType);
-			if (!(contentType.equalsIgnoreCase("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-					|| contentType.equalsIgnoreCase("application/vnd.ms-excel"))) {
+			if (!(contentType.equalsIgnoreCase(SalesConstants.FILE_MEDIA_TYPE_XLSX)
+					|| contentType.equalsIgnoreCase(SalesConstants.FILE_MEDIA_TYPE_XLS))) {
 				throw new Exception("invalid file type -xlsx or xls allowed content types ");
 			}
 
 			// Create Workbook instance for xlsx/xls file input stream
 
-			if (contentType != null && contentType.toLowerCase()
-					.endsWith("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")) {
+			if (contentType != null && contentType.toLowerCase().endsWith(SalesConstants.FILE_MEDIA_TYPE_XLSX)) {
 				workbook = new XSSFWorkbook(inputStream);
 			}
-			if (contentType != null && contentType.toLowerCase().endsWith("application/vnd.ms-excel")) {
+			if (contentType != null && contentType.toLowerCase().endsWith(SalesConstants.FILE_MEDIA_TYPE_XLS)) {
 				workbook = new HSSFWorkbook(inputStream);
 			}
+			String fileName = "sales" + SalesWSEndpoint.getClientFileName(clientId) + ".csv";
+			System.out.println("fileName" + fileName);
 
-			my_csv_output = new CSVWriter(new FileWriter("sales.csv", false), ',', '\0');
+			my_csv_output = new CSVWriter(new FileWriter(fileName, false), ',', '\0');
 
 			// Get the nth sheet from the workbook
 			Sheet sheet = workbook.getSheetAt(1);
@@ -149,7 +164,7 @@ public class ExcelToCsvConvertor implements Callable<String> {
 				System.out.println("error while converting");
 
 			} else {
-				Session session = BroadcastServerEndpoint.getSession(clientId);
+				Session session = SalesWSEndpoint.getSession(clientId);
 				if (session != null) {
 					try {
 						session.getBasicRemote().sendObject(new Message(session.getId(), "CSV_READY"));

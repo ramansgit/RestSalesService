@@ -1,5 +1,6 @@
 package com.sales.websocket.service;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.HashMap;
@@ -17,16 +18,14 @@ import com.sales.service.model.Message;
 import com.sales.service.model.Message.MessageDecoder;
 import com.sales.service.model.Message.MessageEncoder;
 
-@ServerEndpoint(value = "/ws", encoders = { MessageEncoder.class }, decoders = { MessageDecoder.class })
-public class BroadcastServerEndpoint {
-	private static  Map<String, Session> clients = new HashMap<String, Session>();
+@ServerEndpoint(value = "/ws/sales", encoders = { MessageEncoder.class }, decoders = { MessageDecoder.class })
+public class SalesWSEndpoint {
+	private static Map<String, Session> clients = Collections.synchronizedMap(new HashMap<String, Session>());
 
 	@OnOpen
 	public void onOpen(final Session session) {
-		System.out.println("CONNECTION OPENED ");
+		System.out.println("Connection Opened ");
 		clients.put(session.getId(), session);
-		
-		System.out.println(clients.keySet());
 		try {
 			session.getBasicRemote().sendObject(new Message(session.getId(), "CLIENT_CONNECTED"));
 		} catch (IOException e) {
@@ -40,10 +39,18 @@ public class BroadcastServerEndpoint {
 
 	@OnClose
 	public void onClose(final Session session) {
-		System.out.println("CONNECTION closed ");
+		System.out.println("Connection Closed ");
 		clients.remove(session.getId());
+
+		String fileName = "sales" + SalesWSEndpoint.getClientFileName(session.getId()) + ".csv";
+		File file = new File(fileName);
+		if (file.exists() && !file.isDirectory()) {
+			System.out.println("file exist ");
+			file.delete();
+		}
+
 	}
-	
+
 	@OnError
 	public void onError(Throwable cause) throws IOException, EncodeException {
 		try {
@@ -63,24 +70,35 @@ public class BroadcastServerEndpoint {
 			e.printStackTrace();
 		}
 	}
-	// @OnMessage
-	// public void onWebSocketText(String message) {
-	// System.out.println("Received TEXT message: " + message);
-	// }
 
 	public static boolean isClientFound(String clientId) {
-		System.out.println("keys "+clients.keySet());
+		System.out.println("client ids ->" + clients.keySet());
 		return clients.containsKey(clientId);
 
 	}
 
 	public static Session getSession(String clientId) {
-		System.out.println("keys "+clients.keySet());
 		if (clients.containsKey(clientId)) {
 			return clients.get(clientId);
 		}
 		return null;
 
+	}
+
+	public static String getClientFileName(String clientId) {
+		if (clientId != null && !clientId.isEmpty()) {
+			String arr[] = clientId.split(":");
+			if (arr.length > 2) {
+				return arr[2].trim() != null ? arr[2].trim() : "";
+			}
+
+		}
+		return "";
+	}
+
+	public static void main(String[] args) {
+
+		System.out.println(getClientFileName("127.0.0.1:8080->127.0.0.1:65499"));
 	}
 
 }

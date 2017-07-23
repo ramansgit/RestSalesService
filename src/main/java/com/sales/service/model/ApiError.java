@@ -1,5 +1,10 @@
 package com.sales.service.model;
 
+/**
+ * returns error response
+ * @author ramans
+ *
+ */
 public class ApiError {
 
 	private String code;

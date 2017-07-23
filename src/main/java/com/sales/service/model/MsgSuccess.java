@@ -1,7 +1,16 @@
 package com.sales.service.model;
 
+/**
+ * returns success response
+ * 
+ * @author ramans
+ *
+ */
 public class MsgSuccess {
 
+	/**
+	 * msg
+	 */
 	private String msg;
 
 	public String getMsg() {
@@ -12,10 +21,18 @@ public class MsgSuccess {
 		this.msg = msg;
 	}
 
+	/**
+	 * 
+	 */
+
 	public MsgSuccess() {
 
 	}
 
+	/**
+	 * 
+	 * @param msg
+	 */
 	public MsgSuccess(String msg) {
 		this.msg = msg;
 

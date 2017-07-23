@@ -1,4 +1,4 @@
-package com.sales.service.api;
+package com.sales.rest.api;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.core.Response;

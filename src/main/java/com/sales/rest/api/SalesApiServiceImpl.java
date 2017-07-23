@@ -1,6 +1,5 @@
-package com.sales.service.api;
+package com.sales.rest.api;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -17,10 +16,20 @@ import com.sales.service.model.Sales;
 import com.sales.service.util.CSVToSalesMapper;
 import com.sales.service.util.ExcelToCsvConvertor;
 import com.sales.service.util.ResponseUtil;
-import com.sales.websocket.service.BroadcastServerEndpoint;
+import com.sales.websocket.service.SalesWSEndpoint;
 
+/**
+ * responsible for uploading sales file and converting to csv format sales
+ * records fetched from csv file
+ * 
+ * @author ramans
+ *
+ */
 public class SalesApiServiceImpl extends SalesApiService {
 
+	/**
+	 * uploads xlsx file into server and saves in .csv format
+	 */
 	@Override
 	public Response uploadExcelFile(String clientId, HttpServletRequest request) {
 		InputStream in = null;
@@ -33,11 +42,11 @@ public class SalesApiServiceImpl extends SalesApiService {
 
 			String contentType = "";
 
-//			if (clientId == null || !BroadcastServerEndpoint.isClientFound(clientId)) {
-//				System.out.println("no client connected with session id" + clientId);
-//				return ResponseUtil.handleFailureResp(Status.BAD_REQUEST, SalesConstants.INVALID_SOCKET_ID_CLIENT,
-//						SalesConstants.INVALID_SOCKET_ID_CLIENT_MSG);
-//			}
+			if (clientId == null || !SalesWSEndpoint.isClientFound(clientId)) {
+				System.out.println("client id not provided or no session found for id" + clientId);
+				return ResponseUtil.handleFailureResp(Status.BAD_REQUEST, SalesConstants.INVALID_SOCKET_ID_CLIENT,
+						SalesConstants.INVALID_SOCKET_ID_CLIENT_MSG);
+			}
 
 			if (file == null) {
 				return ResponseUtil.handleFailureResp(Status.BAD_REQUEST, SalesConstants.EMPTY_FILE_DATA,
@@ -51,10 +60,8 @@ public class SalesApiServiceImpl extends SalesApiService {
 			}
 			in = file.getInputStream();
 			contentType = file.getContentType();
-			if (in == null || contentType == null
-					|| !(contentType
-							.equalsIgnoreCase("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-							|| contentType.equalsIgnoreCase("application/vnd.ms-excel"))) {
+			if (in == null || contentType == null || !(contentType.equalsIgnoreCase(SalesConstants.FILE_MEDIA_TYPE_XLSX)
+					|| contentType.equalsIgnoreCase(SalesConstants.FILE_MEDIA_TYPE_XLS))) {
 
 				return ResponseUtil.handleFailureResp(Status.BAD_REQUEST, SalesConstants.INVALID_FILE_CONTENT_TYPE,
 						SalesConstants.INVALID_FILE_CONTENT_TYPE_MSG);
@@ -72,16 +79,19 @@ public class SalesApiServiceImpl extends SalesApiService {
 			return ResponseUtil.handleFailureResp(Status.INTERNAL_SERVER_ERROR, SalesConstants.FILE_UPLOAD_FAILED,
 					SalesConstants.FILE_UPLOAD_FAILED_MSG);
 		} finally {
-		
+
 		}
 	}
 
+	/**
+	 * 
+	 * reads csv file and sends sales data to client
+	 */
 	@Override
 	public Response getSalesRecord(String clientId) {
 
-		if (clientId == null )//|| !BroadcastServerEndpoint.isClientFound(clientId)) {
-		{
-			System.out.println("no client connected with session id" + clientId);
+		if (clientId == null || !SalesWSEndpoint.isClientFound(clientId)) {
+			System.out.println("client id not provided or no session found for id" + clientId);
 			return ResponseUtil.handleFailureResp(Status.BAD_REQUEST, SalesConstants.INVALID_SOCKET_ID_CLIENT,
 					SalesConstants.INVALID_SOCKET_ID_CLIENT_MSG);
 		}
@@ -89,11 +99,9 @@ public class SalesApiServiceImpl extends SalesApiService {
 		List<Sales> sales = new ArrayList<Sales>();
 		sales.add(new Sales());
 		try {
-
-			sales = CSVToSalesMapper.convertCsvToSales();
+			sales = CSVToSalesMapper.convertCsvToSales(clientId);
 		} catch (Exception e) {
 			e.printStackTrace();
-
 			return ResponseUtil.handleFailureResp(Status.NOT_FOUND, SalesConstants.FILE_NOT_FOUND,
 					SalesConstants.FILE_NOT_FOUND_MSG);
 		}

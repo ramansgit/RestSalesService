@@ -1,5 +1,10 @@
 package com.sales.service.model;
 
+/**
+ * weekly sale pojo information
+ * @author ramans
+ *
+ */
 public class WeeklySale {
 	@Override
 	public String toString() {
@@ -10,14 +15,28 @@ public class WeeklySale {
 	public WeeklySale(){
 		
 	}
-	
+	/**
+	 * 
+	 * @param weekNo
+	 * @param sales
+	 * @param acheivementPercentage
+	 */
 	public WeeklySale(String weekNo,String sales, String acheivementPercentage){
 		this.weekNo = weekNo;
 		this.sales = sales;
 		this.achievementPercentage  = acheivementPercentage;
 	}
+	/**
+	 * weekno
+	 */
 	private String weekNo;
+	/**
+	 * sales 
+	 */
 	private String sales;
+	/**
+	 * sales percentage
+	 */
 	private String achievementPercentage;
 	public String getWeekNo() {
 		return weekNo;

@@ -13,6 +13,12 @@ import javax.websocket.EncodeException;
 import javax.websocket.Encoder;
 import javax.websocket.EndpointConfig;
 
+/**
+ * Message pojo for socket communication
+ * 
+ * @author ramans
+ *
+ */
 public class Message {
 	public String getClientId() {
 		return clientId;
@@ -49,11 +55,10 @@ public class Message {
 		public Message decode(final String str) throws DecodeException {
 			final Message message = new Message();
 
-			try (final JsonReader reader = factory.createReader(new StringReader(str))) {
-				final JsonObject json = reader.readObject();
-				message.setClientId(json.getString("clientId"));
-				message.setMessage(json.getString("message"));
-			}
+			JsonReader reader = factory.createReader(new StringReader(str));
+			final JsonObject json = reader.readObject();
+			message.setClientId(json.getString("clientId"));
+			message.setMessage(json.getString("message"));
 
 			return message;
 		}
